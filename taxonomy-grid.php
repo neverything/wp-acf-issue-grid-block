@@ -2,7 +2,7 @@
 /*
 Plugin Name: Taxonomy Grid Block
 Description: A Gutenberg block that displays a paginated, AJAX-loaded grid of taxonomy terms with thumbnails.
-Version: 1.1
+Version: 1.2
 Author: neverything
 */
 
@@ -36,6 +36,7 @@ add_filter('acf/load_field/name=taxonomy', function ($field) {
 
 function render_taxonomy_grid_block($block) {
     $taxonomy = get_field('taxonomy') ?: 'category';
+    $columns = intval(get_field('grid_columns') ?: 3);
 
     if (!taxonomy_exists($taxonomy)) {
         echo '<p>Invalid taxonomy: ' . esc_html($taxonomy) . '</p>';
@@ -44,7 +45,7 @@ function render_taxonomy_grid_block($block) {
 
     $terms = get_terms([
         'taxonomy'   => $taxonomy,
-        'hide_empty' => false,
+        'hide_empty' => true,
     ]);
 
     if (empty($terms) || is_wp_error($terms)) {
@@ -65,7 +66,7 @@ function render_taxonomy_grid_block($block) {
     $paged_terms = array_slice($terms, $offset, $per_page);
 
     echo '<div class="wp-block-taxonomy-grid" data-taxonomy="' . esc_attr($taxonomy) . '" data-current-page="' . esc_attr($current_page) . '" data-items-per-page="' . esc_attr($per_page) . '">';
-    echo '<div class="taxonomy-grid-items" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem;">';
+    echo '<div class="taxonomy-grid-items" style="display: grid; grid-template-columns: repeat(' . $columns . ', 1fr); gap: 1.5rem;">';
     foreach ($paged_terms as $term) {
         $thumb_field = $taxonomy . '_thumbnail';
         $img_id = get_field($thumb_field, $term);
@@ -112,7 +113,7 @@ function taxonomy_grid_ajax_handler() {
 
     $terms = get_terms([
         'taxonomy'   => $taxonomy,
-        'hide_empty' => false,
+        'hide_empty' => true,
     ]);
 
     $date_field = $taxonomy . '_date';
